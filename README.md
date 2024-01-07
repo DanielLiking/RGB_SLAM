@@ -1,156 +1,259 @@
-# R2DIO
-## R2DIO: Robust, Real-Time and Depth-Inertial Odometry Based on Multi-Modal Constraints (Intel Realsense L515 as an example)
+## Related Works and Extended Application
 
-The RGB-D camera is widely applied on lightweight robots as an essential sensor in indoor SLAM. However, limited by computing cost, many RGB-D SLAM systems do not fully use the multi-modal information of cameras, resulting in degeneration and low accuracy in challenging scenes. To address this issue, this letter introduces a novel, lightweight, robust, real-time and depth-inertial odometry (R2DIO) for ToF RGB-D cameras. Texture and structure information is coupled simultaneously to improve robustness. It efficiently extracts line features from RGB images and plane features from depth images based on agglomerative clustering. When aligning features, the direction vectors of lines and planes are used to filter the mismatches and enhance real-time capability. The IMU measurements propagate states and are tightly coupled in the system by pre-integration. Finally, the system estimates states and builds dense, colored maps with the following constraints: line and plane matching constraints, IMU pre-integration constraints and historical odometry constraints. We demonstrate the robustness, accuracy and efficiency of R2DIO in the experiments. The competitive results indicate that our system is able to locate precisely in challenging scenes and run at 30 Hz on a low-power platform. The source code of R2DIO and experiment datasets is publicly available for the development of the community. 
+**SLAM:**
 
-A summary video demo can be found at [Youtube](https://www.youtube.com/watch?v=YqJZTE948sk) and [Bilibili](https://www.bilibili.com/video/BV1GW4y1u7sz/).
+1. [ikd-Tree](https://github.com/hku-mars/ikd-Tree): A state-of-art dynamic KD-Tree for 3D kNN search.
+2. [R2LIVE](https://github.com/hku-mars/r2live): A high-precision LiDAR-inertial-Vision fusion work using FAST-LIO as LiDAR-inertial front-end.
+3. [LI_Init](https://github.com/hku-mars/LiDAR_IMU_Init): A robust, real-time LiDAR-IMU extrinsic initialization and synchronization package..
+4. [FAST-LIO-LOCALIZATION](https://github.com/HViktorTsoi/FAST_LIO_LOCALIZATION): The integration of FAST-LIO with **Re-localization** function module.
 
-**Author:** Xu Jie, Harbin Institute of Technology, China
+**Control and Plan:**
 
-## 1. SLAM examples with Intel RealSense L515
-### 1.1 In a hall
-<p align='center'>
-<a href="https://www.youtube.com/watch?v=YqJZTE948sk">
-<img width="65%" src="/img/hall.png"/>
-</a>
-</p>
+1. [IKFOM](https://github.com/hku-mars/IKFoM): A Toolbox for fast and high-precision on-manifold Kalman filter.
+2. [UAV Avoiding Dynamic Obstacles](https://github.com/hku-mars/dyn_small_obs_avoidance): One of the implementation of FAST-LIO in robot's planning.
+3. [UGV Demo](https://www.youtube.com/watch?v=wikgrQbE6Cs): Model Predictive Control for Trajectory Tracking on Differentiable Manifolds.
+4. [Bubble Planner](https://arxiv.org/abs/2202.12177): Planning High-speed Smooth Quadrotor Trajectories using Receding Corridors.
 
-### 1.2 In an office
-<p align='center'>
-<a href="https://www.youtube.com/watch?v=YqJZTE948sk">
-<img width="65%" src="/img/office.png"/>
-</a>
-</p>
+<!-- 10. [**FAST-LIVO**](https://github.com/hku-mars/FAST-LIVO): Fast and Tightly-coupled Sparse-Direct LiDAR-Inertial-Visual Odometry. -->
 
-### 1.3 Facing a display board
-<p align='center'>
-<a href="https://www.youtube.com/watch?v=YqJZTE948sk">
-<img width="65%" src="/img/displayboard.png"/>
-</a>
-</p>
+## FAST-LIO
+**FAST-LIO** (Fast LiDAR-Inertial Odometry) is a computationally efficient and robust LiDAR-inertial odometry package. It fuses LiDAR feature points with IMU data using a tightly-coupled iterated extended Kalman filter to allow robust navigation in fast-motion, noisy or cluttered environments where degeneration occurs. Our package address many key issues:
+1. Fast iterated Kalman filter for odometry optimization;
+2. Automaticaly initialized at most steady environments;
+3. Parallel KD-Tree Search to decrease the computation;
 
-## 2. Prerequisites
-### 2.1 **Ubuntu** and **ROS**
-Ubuntu 64-bit 20.04.
+## FAST-LIO 2.0 (2021-07-05 Update)
+<!-- ![image](doc/real_experiment2.gif) -->
+<!-- [![Watch the video](doc/real_exp_2.png)](https://youtu.be/2OvjGnxszf8) -->
+<div align="left">
+<img src="doc/real_experiment2.gif" width=49.6% />
+<img src="doc/ulhkwh_fastlio.gif" width = 49.6% >
+</div>
 
-ROS noetic. [ROS Installation](http://wiki.ros.org/ROS/Installation)
+**Related video:**  [FAST-LIO2](https://youtu.be/2OvjGnxszf8),  [FAST-LIO1](https://youtu.be/iYCY6T79oNU)
 
-### 2.2. **Ceres Solver**
-Follow [Ceres Installation](http://ceres-solver.org/installation.html). 
+**Pipeline:**
+<div align="center">
+<img src="doc/overview_fastlio2.svg" width=99% />
+</div>
 
-Tested with 2.0
+**New Features:**
+1. Incremental mapping using [ikd-Tree](https://github.com/hku-mars/ikd-Tree), achieve faster speed and over 100Hz LiDAR rate.
+2. Direct odometry (scan to map) on Raw LiDAR points (feature extraction can be disabled), achieving better accuracy.
+3. Since no requirements for feature extraction, FAST-LIO2 can support many types of LiDAR including spinning (Velodyne, Ouster) and solid-state (Livox Avia, Horizon, MID-70) LiDARs, and can be easily extended to support more LiDARs.
+4. Support external IMU.
+5. Support ARM-based platforms including Khadas VIM3, Nivida TX2, Raspberry Pi 4B(8G RAM).
 
-### 2.3. **PCL**
-Follow [PCL Installation](http://www.pointclouds.org/downloads/linux.html). 
+**Related papers**: 
 
-Tested with 1.10 (inherent in ros)
+[FAST-LIO2: Fast Direct LiDAR-inertial Odometry](doc/Fast_LIO_2.pdf)
 
-### 2.4. **Trajectory visualization**
-For visualization purpose, this package uses hector trajectory sever, you may install the package by 
+[FAST-LIO: A Fast, Robust LiDAR-inertial Odometry Package by Tightly-Coupled Iterated Kalman Filter](https://arxiv.org/abs/2010.08196)
+
+**Contributors**
+
+[Wei Xu 徐威](https://github.com/XW-HKU)，[Yixi Cai 蔡逸熙](https://github.com/Ecstasy-EC)，[Dongjiao He 贺东娇](https://github.com/Joanna-HE)，[Fangcheng Zhu 朱方程](https://github.com/zfc-zfc)，[Jiarong Lin 林家荣](https://github.com/ziv-lin)，[Zheng Liu 刘政](https://github.com/Zale-Liu), [Borong Yuan](https://github.com/borongyuan)
+
+<!-- <div align="center">
+    <img src="doc/results/HKU_HW.png" width = 49% >
+    <img src="doc/results/HKU_MB_001.png" width = 49% >
+</div> -->
+
+## 1. Prerequisites
+### 1.1 **Ubuntu** and **ROS**
+**Ubuntu >= 16.04**
+
+For **Ubuntu 18.04 or higher**, the **default** PCL and Eigen is enough for FAST-LIO to work normally.
+
+ROS    >= Melodic. [ROS Installation](http://wiki.ros.org/ROS/Installation)
+
+### 1.2. **PCL && Eigen**
+PCL    >= 1.8,   Follow [PCL Installation](http://www.pointclouds.org/downloads/linux.html).
+
+Eigen  >= 3.3.4, Follow [Eigen Installation](http://eigen.tuxfamily.org/index.php?title=Main_Page).
+
+### 1.3. **livox_ros_driver**
+Follow [livox_ros_driver Installation](https://github.com/Livox-SDK/livox_ros_driver).
+
+*Remarks:*
+- Since the FAST-LIO must support Livox serials LiDAR firstly, so the **livox_ros_driver** must be installed and **sourced** before run any FAST-LIO luanch file.
+- How to source? The easiest way is add the line ``` source $Livox_ros_driver_dir$/devel/setup.bash ``` to the end of file ``` ~/.bashrc ```, where ``` $Livox_ros_driver_dir$ ``` is the directory of the livox ros driver workspace (should be the ``` ws_livox ``` directory if you completely followed the livox official document).
+
+
+## 2. Build
+If you want to use docker conatiner to run fastlio2, please install the docker on you machine.
+Follow [Docker Installation](https://docs.docker.com/engine/install/ubuntu/).
+### 2.1 Docker Container
+User can create a new script with anyname by the following command in linux:
 ```
-sudo apt update
-sudo apt install ros-noetic-hector-trajectory-server
+touch <your_custom_name>.sh
 ```
-Alternatively, you may remove the hector trajectory server node if trajectory visualization is not needed
-
-### 2.4. **OpenCV**
-Tested with 4.2.0 (inherent in ros)
-
-## 3. Build 
-### 3.1 Clone repository:
+Place the following code inside the ``` <your_custom_name>.sh ``` script.
 ```
-    cd ~/catkin_ws/src
-    git clone https://github.com/jiejie567/R2DIO.git
-    cd ..
+#!/bin/bash
+mkdir docker_ws
+# Script to run ROS Kinetic with GUI support in Docker
+
+# Allow X server to be accessed from the local machine
+xhost +local:
+
+# Container name
+CONTAINER_NAME="fastlio2"
+
+# Run the Docker container
+docker run -itd \
+  --name=$CONTAINER_NAME \
+  --user mars_ugv \
+  --network host \
+  --ipc=host \
+  -v /home/$USER/docker_ws:/home/mars_ugv/docker_ws \
+  --privileged \
+  --env="QT_X11_NO_MITSHM=1" \
+  --volume="/etc/localtime:/etc/localtime:ro" \
+  -v /dev/bus/usb:/dev/bus/usb \
+  --device=/dev/dri \
+  --group-add video \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  --env="DISPLAY=$DISPLAY" \
+  kenny0407/marslab_fastlio2:latest \
+  /bin/bash
+```
+execute the following command to grant execute permissions to the script, making it runnable:
+```
+sudo chmod +x <your_custom_name>.sh
+```
+execute the following command to download the image and create the container.
+```
+./<your_custom_name>.sh
+```
+
+*Script explanation:*
+- The docker run command provided below creates a container with a tag, using an image from Docker Hub. The download duration for this image can differ depending on the user's network speed.
+- This command also establishes a new workspace called ``` docker_ws ```, which serves as a shared folder between the Docker container and the host machine. This means that if users wish to run the rosbag example, they need to download the rosbag file and place it in the ``` docker_ws ``` directory on their host machine.
+- Subsequently, a folder with the same name inside the Docker container will receive this file. Users can then easily play the file within Docker.
+- In this example, we've shared the network of the host machine with the Docker container. Consequently, if users execute the ``` rostopic list ``` command, they will observe identical output whether they run it on the host machine or inside the Docker container."
+### 2.2 Build from source
+Clone the repository and catkin_make:
+
+```
+    cd ~/$A_ROS_DIR$/src
+    git clone https://github.com/hku-mars/FAST_LIO.git
+    cd FAST_LIO
+    git submodule update --init
+    cd ../..
     catkin_make
-    source ~/catkin_ws/devel/setup.bash
+    source devel/setup.bash
+```
+- Remember to source the livox_ros_driver before build (follow 1.3 **livox_ros_driver**)
+- If you want to use a custom build of PCL, add the following line to ~/.bashrc
+```export PCL_ROOT={CUSTOM_PCL_PATH}```
+## 3. Directly run
+Noted:
+
+A. Please make sure the IMU and LiDAR are **Synchronized**, that's important.
+
+B. The warning message "Failed to find match for field 'time'." means the timestamps of each LiDAR points are missed in the rosbag file. That is important for the forward propagation and backwark propagation.
+
+C. We recommend to set the **extrinsic_est_en** to false if the extrinsic is give. As for the extrinsic initiallization, please refer to our recent work: [**Robust Real-time LiDAR-inertial Initialization**](https://github.com/hku-mars/LiDAR_IMU_Init).
+
+### 3.1 For Avia
+Connect to your PC to Livox Avia LiDAR by following  [Livox-ros-driver installation](https://github.com/Livox-SDK/livox_ros_driver), then
+```
+    cd ~/$FAST_LIO_ROS_DIR$
+    source devel/setup.bash
+    roslaunch fast_lio mapping_avia.launch
+    roslaunch livox_ros_driver livox_lidar_msg.launch
+```
+- For livox serials, FAST-LIO only support the data collected by the ``` livox_lidar_msg.launch ``` since only its ``` livox_ros_driver/CustomMsg ``` data structure produces the timestamp of each LiDAR point which is very important for the motion undistortion. ``` livox_lidar.launch ``` can not produce it right now.
+- If you want to change the frame rate, please modify the **publish_freq** parameter in the [livox_lidar_msg.launch](https://github.com/Livox-SDK/livox_ros_driver/blob/master/livox_ros_driver/launch/livox_lidar_msg.launch) of [Livox-ros-driver](https://github.com/Livox-SDK/livox_ros_driver) before make the livox_ros_driver pakage.
+
+### 3.2 For Livox serials with external IMU
+
+mapping_avia.launch theratically supports mid-70, mid-40 or other livox serial LiDAR, but need to setup some parameters befor run:
+
+Edit ``` config/avia.yaml ``` to set the below parameters:
+
+1. LiDAR point cloud topic name: ``` lid_topic ```
+2. IMU topic name: ``` imu_topic ```
+3. Translational extrinsic: ``` extrinsic_T ```
+4. Rotational extrinsic: ``` extrinsic_R ``` (only support rotation matrix)
+- The extrinsic parameters in FAST-LIO is defined as the LiDAR's pose (position and rotation matrix) in IMU body frame (i.e. the IMU is the base frame). They can be found in the official manual.
+- FAST-LIO produces a very simple software time sync for livox LiDAR, set parameter ```time_sync_en``` to ture to turn on. But turn on **ONLY IF external time synchronization is really not possible**, since the software time sync cannot make sure accuracy.
+
+### 3.3 For Velodyne or Ouster (Velodyne as an example)
+
+Step A: Setup before run
+
+Edit ``` config/velodyne.yaml ``` to set the below parameters:
+
+1. LiDAR point cloud topic name: ``` lid_topic ```
+2. IMU topic name: ``` imu_topic ``` (both internal and external, 6-aixes or 9-axies are fine)
+3. Set the parameter ```timestamp_unit``` based on the unit of **time** (Velodyne) or **t** (Ouster) field in PoindCloud2 rostopic
+4. Line number (we tested 16, 32 and 64 line, but not tested 128 or above): ``` scan_line ```
+5. Translational extrinsic: ``` extrinsic_T ```
+6. Rotational extrinsic: ``` extrinsic_R ``` (only support rotation matrix)
+- The extrinsic parameters in FAST-LIO is defined as the LiDAR's pose (position and rotation matrix) in IMU body frame (i.e. the IMU is the base frame).
+
+Step B: Run below
+```
+    cd ~/$FAST_LIO_ROS_DIR$
+    source devel/setup.bash
+    roslaunch fast_lio mapping_velodyne.launch
 ```
 
-### 3.2 Download test rosbag
-You may download our [recorded data](https://drive.google.com/drive/folders/1S0Q351M9zEgg-Nme4obqexRQlYRJyco7?usp=sharing) (10GB). (one rosbag)
+Step C: Run LiDAR's ros driver or play rosbag.
 
-If you are in China, you can download the recorded data via Baidu Netdisk
-: [office](https://pan.baidu.com/s/1LTos6MG4CUq3SJz6GV55tQ), [hall](https://pan.baidu.com/s/16hp1APONPAn46WgFgvkm_g), and [display board](https://pan.baidu.com/s/1Ys_a9dZR9E-d9ELlY6-wug). The extraction code is 0503. (ten rosbags)
+### 3.4 PCD file save
 
-Note that due to the limitation of Google drive capacity, we only upload one rosbag. 
+Set ``` pcd_save_enable ``` in launchfile to ``` 1 ```. All the scans (in global frame) will be accumulated and saved to the file ``` FAST_LIO/PCD/scans.pcd ``` after the FAST-LIO is terminated. ```pcl_viewer scans.pcd``` can visualize the point clouds.
 
-
-
-
-### 3.3 Launch ROS
+*Tips for pcl_viewer:*
+- change what to visualize/color by pressing keyboard 1,2,3,4,5 when pcl_viewer is running. 
 ```
-    roslaunch r2dio r2dio.launch
-```
-Note that change the path to your datasets.
-
-## 4. Sensor Setup
-If you have new Realsense L515 sensor, you may follow the below setup instructions
-
-### 4.1 IMU calibration (optional)
-You may read official document [L515 Calibration Manual] (https://github.com/l515_calibration_manual.pdf) first
-
-use the following command to calibrate imu, note that the build-in imu is a low-grade imu, to get better accurate, you may use your own imu
-```
-cd ~/catkin_ws/src/r2dio/l515_imu_calibration
-python rs-imu-calibration.py
+    1 is all random
+    2 is X values
+    3 is Y values
+    4 is Z values
+    5 is intensity
 ```
 
-### 4.2 L515
-<p align='center'>
-<img width="35%" src="/img/setup.png"/>
-</p>
+## 4. Rosbag Example
+### 4.1 Livox Avia Rosbag
+<div align="left">
+<img src="doc/results/HKU_LG_Indoor.png" width=47% />
+<img src="doc/results/HKU_MB_002.png" width = 51% >
 
-### 4.3 Librealsense
-Follow [Librealsense Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
+Files: Can be downloaded from [google drive](https://drive.google.com/drive/folders/1CGYEJ9-wWjr8INyan6q1BZz_5VtGB-fP?usp=sharing)
 
-### 4.4 Realsense_ros
-Copy [realsense_ros](https://github.com/IntelRealSense/realsense-ros) package to your catkin folder
+Run:
 ```
-    cd ~/catkin_ws/src
-    git clone https://github.com/IntelRealSense/realsense-ros.git
-    cd ..
-    catkin_make
+roslaunch fast_lio mapping_avia.launch
+rosbag play YOUR_DOWNLOADED.bag
+
 ```
 
-### 4.5 Launch ROS
-Make Lidar still for 1 sec to estimate the initial bias, otherwise will cause localization failure!
+### 4.2 Velodyne HDL-32E Rosbag
+
+**NCLT Dataset**: Original bin file can be found [here](http://robots.engin.umich.edu/nclt/).
+
+We produce [Rosbag Files](https://drive.google.com/drive/folders/1blQJuAB4S80NwZmpM6oALyHWvBljPSOE?usp=sharing) and [a python script](https://drive.google.com/file/d/1QC9IRBv2_-cgo_AEvL62E1ml1IL9ht6J/view?usp=sharing) to generate Rosbag files: ```python3 sensordata_to_rosbag_fastlio.py bin_file_dir bag_name.bag```
+    
+Run:
 ```
-    roslaunch r2dio r2dio_L515.launch
+roslaunch fast_lio mapping_velodyne.launch
+rosbag play YOUR_DOWNLOADED.bag
 ```
-### 4.6 Docker suppot
-You can see the details in docker_support.pdf. Thanks for [Yin Ao](https://github.com/coolaogege)'s work about the docker.
-## 5. Citation
-If you use this work for your research, you may want to cite the paper below, your citation will be appreciated.
-```
-@ARTICLE{10268066,
-  author={Xu, Jie and Li, Ruifeng and Huang, Song and Zhao, Xiongwei and Qiu, Shuxin and Chen, Zhijun and Zhao, Lijun},
-  journal={IEEE Transactions on Instrumentation and Measurement}, 
-  title={R2DIO: A Robust and Real-Time Depth-Inertial Odometry Leveraging Multimodal Constraints for Challenging Environments}, 
-  year={2023},
-  volume={72},
-  number={},
-  pages={1-11},
-  doi={10.1109/TIM.2023.3320753}}
 
-@article{wang2021lightweight,
-  author={H. {Wang} and C. {Wang} and L. {Xie}},
-  journal={IEEE Robotics and Automation Letters}, 
-  title={Lightweight 3-D Localization and Mapping for Solid-State LiDAR}, 
-  year={2021},
-  volume={6},
-  number={2},
-  pages={1801-1807},
-  doi={10.1109/LRA.2021.3060392}}
-```
-## 6. Acknowledgements
-The code is heavily derived from [SSL-SLAM3](https://github.com/wh200720041/ssl_slam3), thanks for Wang Han's open-source spirit.
+## 5.Implementation on UAV
+In order to validate the robustness and computational efficiency of FAST-LIO in actual mobile robots, we build a small-scale quadrotor which can carry a Livox Avia LiDAR with 70 degree FoV and a DJI Manifold 2-C onboard computer with a 1.8 GHz Intel i7-8550U CPU and 8 G RAM, as shown in below.
 
-The datasets and video are processed by [Qiu Shuxin](https://github.com/1136958879) and Huang Song.
+The main structure of this UAV is 3d printed (Aluminum or PLA), the .stl file will be open-sourced in the future.
 
-The docker is created by [Yin Ao](https://github.com/coolaogege).
+<div align="center">
+    <img src="doc/uav01.jpg" width=40.5% >
+    <img src="doc/uav_system.png" width=57% >
+</div>
 
-What's more, the "DIO" in the title "R2DIO" means:
-<p align='center'>
-<img width="35%" src="/img/dio.jpg"/>
-</p>
+## 6.Acknowledgments
 
+Thanks for LOAM(J. Zhang and S. Singh. LOAM: Lidar Odometry and Mapping in Real-time), [Livox_Mapping](https://github.com/Livox-SDK/livox_mapping), [LINS](https://github.com/ChaoqinRobotics/LINS---LiDAR-inertial-SLAM) and [Loam_Livox](https://github.com/hku-mars/loam_livox).
